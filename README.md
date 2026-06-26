@@ -251,6 +251,7 @@ The test suite runs against the bundled LAPACK-linked C core by default. In the 
 python examples/basic_polynomial.py
 python examples/maps.py
 python examples/parameters.py
+python examples/parametric_normal_form.py
 python examples/complex_tpsa.py
 ```
 
