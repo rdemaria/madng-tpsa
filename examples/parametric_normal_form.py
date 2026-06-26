@@ -279,7 +279,6 @@ def linear_normalizing_matrix(local_map: mt.TPSAMap) -> tuple[tuple[mt.TPSA, mt.
 
     m11 = tpsa_variable_coefficient(local_map[0], (1, 0))
     m12 = tpsa_variable_coefficient(local_map[0], (0, 1))
-    m21 = tpsa_variable_coefficient(local_map[1], (1, 0))
     m22 = tpsa_variable_coefficient(local_map[1], (0, 1))
 
     cos_mu = 0.5 * (m11 + m22)

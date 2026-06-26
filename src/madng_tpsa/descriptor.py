@@ -369,21 +369,3 @@ def _monomial_array(monomial: Sequence[int], expected_len: int):
     if len(values) != expected_len:
         raise ValueError(f"monomial must contain {expected_len} orders, got {len(values)}")
     return ffi.new("ord_t[]", [_ord(v) for v in values])
-        """Return this descriptor for use as a context manager."""
-
-        """Close this descriptor when leaving a context-manager block."""
-
-        """Return a concise representation of this descriptor."""
-
-        """Set the number of real TPSA variables for the descriptor being built."""
-
-        """Set the maximum Taylor order for the descriptor being built."""
-
-        """Set the number and optional order of TPSA parameters."""
-
-        """Set per-variable and per-parameter maximum orders."""
-
-        """Build and return a Descriptor from the configured options."""
-
-        """Return a concise representation of the current builder settings."""
-

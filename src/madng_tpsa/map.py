@@ -7,7 +7,7 @@ from typing import Callable
 
 from ._cffi import ffi, load_library
 from .descriptor import Descriptor
-from .tpsa import TPSA, Number, _is_number
+from .tpsa import TPSA, _is_number
 
 
 class TPSAMap(Sequence[TPSA]):
@@ -206,49 +206,3 @@ def _reflected_name(name: str) -> str:
         "__truediv__": "__rtruediv__",
         "__pow__": "__rpow__",
     }[name]
-        """Create a TPSA map whose components are constants."""
-
-        """Return the descriptor shared by all map components."""
-
-        """Return the number of components in the map."""
-
-        """Return the number of map components."""
-
-        """Iterate over the map components."""
-
-        """Return one component or a slice of components."""
-
-        """Return a component-wise copy of this map."""
-
-        """Apply a function to each component and return a new map."""
-
-        """Return the MAD-NG norm of the map."""
-
-        """Return the maximum order among the map components."""
-
-        """Compose maps using the @ operator."""
-
-        """Return a component-wise map sum."""
-
-        """Return a reflected component-wise map sum."""
-
-        """Return a component-wise map difference."""
-
-        """Return a reflected component-wise map difference."""
-
-        """Return a component-wise map product or scaling."""
-
-        """Return a reflected component-wise map product or scaling."""
-
-        """Return a component-wise map quotient."""
-
-        """Return a reflected component-wise map quotient."""
-
-        """Raise each component to the given power."""
-
-        """Return the component-wise additive inverse."""
-
-        """Return a copy of this map."""
-
-        """Return a concise representation of this map."""
-
