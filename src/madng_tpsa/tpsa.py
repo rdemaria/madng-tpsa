@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import math as _math
 from numbers import Real
-from typing import Iterator, Mapping, Sequence
+from typing import Iterator, Mapping, Sequence, Union
 
 from ._cffi import default_order, ffi, load_library, same_order, _ord, ptr_address
 from .descriptor import Descriptor, _monomial_array
 from .exceptions import MadngTPSAError, TPSAClosedError
 
-Number = int | float
+Number = Union[int, float]
 
 
 class TPSA:

@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import math
 from numbers import Real
-from typing import Callable
+from typing import Callable, Union
 
 from ._cffi import load_library
 from .map import TPSAMap
 from .tpsa import TPSA, coerce_common
 
 
-Number = int | float
+Number = Union[int, float]
 
 
 def _is_number(value: object) -> bool:
