@@ -14,12 +14,14 @@ def main() -> None:
     x, y = desc.variables()
 
     f = mt.sin(x) + y**2 + 3.0 * x * y + 2.0
+    dfdx = f.derivative(1)
 
     print("f = sin(x) + y^2 + 3xy + 2")
     print("constant:", f[0, 0])
     print("x coefficient:", f[1, 0])
     print("x^3 coefficient:", f[3, 0])
     print("y^2 coefficient:", f[0, 2])
+    print("df/dx at (0.2, 0.1):", dfdx.evaluate([0.2, 0.1]))
     print("f(0.2, 0.1):", f.evaluate([0.2, 0.1]))
 
 

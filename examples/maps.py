@@ -1,4 +1,4 @@
-"""TPSA map example.
+"""TPSA map composition and inverse example.
 
 Run with:
     python examples/maps.py
@@ -23,11 +23,14 @@ def main() -> None:
     desc = mt.descriptor(2, 5)
 
     one_turn = drift(1.0, desc) @ kick(0.2, desc) @ drift(1.0, desc)
-    print("one-turn map at x=1e-3, px=0:", one_turn.evaluate([1e-3, 0.0]))
+    point = [1e-3, 0.0]
+    image = one_turn.evaluate(point)
 
     inv = one_turn.inverse()
-    recovered = inv @ one_turn
-    print("inverse composed with map at x=1e-3, px=0:", recovered.evaluate([1e-3, 0.0]))
+    recovered = inv.evaluate(image)
+
+    print("one-turn map at x=1e-3, px=0:", image)
+    print("inverse applied to that image:", recovered)
 
 
 if __name__ == "__main__":

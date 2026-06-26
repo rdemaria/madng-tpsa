@@ -16,9 +16,9 @@ import madng_tpsa as mt
 
 ## Status
 
-This version builds a bundled CFFI extension named `madng_tpsa._madng_tpsa_cffi` at install time. By default, descriptors and TPSA values use that private C backend, so a separate MAD-NG installation or `MADNG_TPSA_LIBRARY` setting is no longer required.
+This version builds a bundled CFFI extension named `madng_tpsa._madng_tpsa_cffi` at install time. By default, descriptors and TPSA values use that private C backend, so neither MAD-NG nor `pymadng` is a runtime dependency.
 
-The bundled backend is a package-local MAD-NG-compatible real TPSA C core. Its public function names and signatures match the MAD-NG real TPSA C API used by the Python layer, so the same wrapper can also target an external, optimized MAD-NG/libgtpsa shared library. The bundled `mad_tpsa_minv` map-inversion entry point now links against LAPACK/BLAS, matching the upstream standalone GTPSA expectation that the inverse routines require LAPACK. MAD-NG and this package are GPLv3-or-later.
+The bundled backend exports the MAD-NG real TPSA C symbols used by the Python layer, including the map inverse entry point `mad_tpsa_minv`. Map inversion is LAPACK-backed: the C backend calls LAPACK `dgesv_` to invert the linear part and then performs the TPSA Newton inverse in C. The wrapper can still target an external, optimized MAD-NG/libgtpsa shared library with the same public symbols. MAD-NG and this package are GPLv3-or-later.
 
 At runtime:
 
@@ -72,9 +72,9 @@ print(mt.loaded_library_path())
 PY
 ```
 
-If an explicit external path fails to load, the package falls back to its bundled C core and keeps the external-load diagnostic in `mt.availability_error()`.
+If an explicit external path fails to load, the package falls back to its bundled C core and keeps the external-load diagnostic in `mt.availability_error()`. The bundled backend is the normal path; the external path exists for developers who want to compare with, or benchmark against, an upstream MAD-NG/libgtpsa build.
 
-The helper script from the earlier ABI-only package is still present for developers who want to experiment with an upstream MAD-NG shared object:
+To build an upstream MAD-NG/libgtpsa shared object for that override, use:
 
 ```bash
 git clone https://github.com/MethodicalAcceleratorDesign/MAD-NG.git
@@ -185,7 +185,7 @@ inverse = one_turn.inverse()
 print((inverse @ one_turn).evaluate([1e-3, 0.0]))
 ```
 
-`TPSAMap.inverse()` calls the C `mad_tpsa_minv` entry point. In the bundled backend, `mad_tpsa_minv` uses LAPACK `dgesv` to invert/solve the linear part and then applies TPSA Newton refinement in C. External MAD-NG/libgtpsa builds can provide their own optimized `mad_tpsa_minv` implementation through `MADNG_TPSA_LIBRARY`.
+`TPSAMap.inverse()` calls the C `mad_tpsa_minv` entry point. In the bundled backend that routine is linked to LAPACK/BLAS; if you set `MADNG_TPSA_LIBRARY`, the same Python call dispatches to the external library's `mad_tpsa_minv`.
 
 ## Mathematical functions
 
@@ -214,18 +214,19 @@ The same functions work element-wise on `TPSAMap` values.
 pytest
 ```
 
-The test suite now runs against the bundled C core by default. In the build environment used for this artifact, the suite reports `8 passed`.
+The test suite runs against the bundled LAPACK-linked C core by default. In the build environment used for this artifact, the suite reports `11 passed`.
 
 ## Examples
 
 ```bash
 python examples/basic_polynomial.py
 python examples/maps.py
+python examples/parameters.py
 ```
 
 ## Notes and limitations
 
 - The wrapper targets the real TPSA API (`mad_tpsa_*`). Complex TPSA (`mad_ctpsa_*`) is not wrapped yet.
-- The bundled backend is designed for portability and correctness on small/medium descriptors. Use `MADNG_TPSA_LIBRARY` with an optimized MAD-NG/libgtpsa shared library when you need upstream's full performance profile.
+- The bundled backend is designed for portability and correctness on small/medium descriptors. For MAD-NG's full optimized performance profile, build or point to an external MAD-NG/libgtpsa shared library.
 - Source builds require LAPACK/BLAS because map inversion is part of the supported TPSA algebra.
 - Descriptor destruction is delicate in C APIs: no TPSA may still use a descriptor when `mad_desc_del` is called. Prefer normal Python object lifetime over explicit `Descriptor.close()` unless you know the TPSA values are gone.

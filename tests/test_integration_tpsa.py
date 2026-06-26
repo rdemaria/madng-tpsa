@@ -6,12 +6,6 @@ import pytest
 
 import madng_tpsa as mt
 
-pytestmark = pytest.mark.skipif(
-    not mt.is_available(),
-    reason=mt.availability_error() or "MAD-NG TPSA shared library is not available",
-)
-
-
 def test_polynomial_algebra_and_coefficients():
     desc = mt.DescriptorBuilder().variables(2).order(5).build()
     x, y = desc.variables()
@@ -34,6 +28,19 @@ def test_derivative_and_evaluation():
     assert dfdx[1, 0] == pytest.approx(2.0)
     assert dfdx[0, 1] == pytest.approx(2.0)
     assert f.evaluate([0.2, 0.1]) == pytest.approx(0.2**2 + 2 * 0.2 * 0.1 + math.exp(0.1))
+
+
+def test_parameters_use_full_dense_monomial_dimension():
+    desc = mt.DescriptorBuilder().variables(2).order(4).parameters(1, order=1).build()
+    x, y = desc.variables()
+    k = desc.parameter(1)
+
+    f = mt.sin(x) + y**2 + x * k + 2.0
+
+    assert desc.n_total == 3
+    assert f[1, 0, 1] == pytest.approx(1.0)
+    assert f.evaluate([0.2, 0.1, 3.0]) == pytest.approx(math.sin(0.2) + 0.1**2 + 0.2 * 3.0 + 2.0)
+
 
 
 def test_map_identity_composition_and_evaluation():

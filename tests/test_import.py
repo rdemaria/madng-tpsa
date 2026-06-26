@@ -3,16 +3,12 @@ from __future__ import annotations
 import madng_tpsa as mt
 
 
-def test_import_is_lazy_and_availability_has_bool_contract():
-    available = mt.is_available()
-    assert isinstance(available, bool)
-    if available:
-        assert mt.loaded_library_path() is not None
-    else:
-        assert mt.availability_error() is not None
+def test_bundled_backend_is_loadable():
+    assert mt.is_available(), mt.availability_error()
+    assert mt.loaded_library_path() is not None
 
 
-def test_descriptor_builder_repr_and_validation_without_library():
+def test_descriptor_builder_repr_and_validation():
     builder = mt.DescriptorBuilder().variables(2).order(4).parameters(1, order=1).orders(4, 4, 1)
     text = repr(builder)
     assert "n_variables=2" in text
