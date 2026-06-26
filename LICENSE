@@ -1,0 +1,11 @@
+SPDX-License-Identifier: GPL-3.0-or-later
+
+madng-tpsa is distributed under the GNU General Public License version 3 or,
+at your option, any later version.
+
+This package is a Python wrapper for MAD-NG TPSA. MAD-NG source files declare
+GPLv3-or-later licensing. See the upstream repository for the complete license
+text and notices:
+
+  https://github.com/MethodicalAcceleratorDesign/MAD-NG
+  https://www.gnu.org/licenses/gpl-3.0.txt

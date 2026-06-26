@@ -1,0 +1,237 @@
+"""Mathematical functions for TPSA values and maps."""
+
+from __future__ import annotations
+
+import math
+from numbers import Real
+from typing import Callable
+
+from ._cffi import load_library
+from .map import TPSAMap
+from .tpsa import TPSA, coerce_common
+
+
+Number = int | float
+
+
+def _is_number(value: object) -> bool:
+    return isinstance(value, Real) and not isinstance(value, bool)
+
+
+def _unary(value, c_function_name: str, numeric: Callable[[float], float] | None = None):
+    if isinstance(value, TPSA):
+        return value._unary(c_function_name)
+    if isinstance(value, TPSAMap):
+        return value.apply(lambda component: _unary(component, c_function_name, numeric))
+    if _is_number(value) and numeric is not None:
+        return numeric(float(value))
+    raise TypeError(f"{c_function_name[9:]} expects a TPSA, TPSAMap, or supported real number")
+
+
+def _binary(a, b, c_function_name: str, numeric: Callable[[float, float], float] | None = None):
+    if isinstance(a, TPSAMap) and isinstance(b, TPSAMap):
+        if len(a) != len(b):
+            raise ValueError("TPSAMap sizes differ")
+        return TPSAMap(_binary(x, y, c_function_name, numeric) for x, y in zip(a, b))
+    if isinstance(a, TPSAMap):
+        return TPSAMap(_binary(x, b, c_function_name, numeric) for x in a)
+    if isinstance(b, TPSAMap):
+        return TPSAMap(_binary(a, y, c_function_name, numeric) for y in b)
+    if isinstance(a, TPSA) or isinstance(b, TPSA):
+        aa, bb = coerce_common(a, b)
+        out = aa._new_like()
+        getattr(load_library(), c_function_name)(aa.ptr, bb.ptr, out.ptr)
+        return out
+    if _is_number(a) and _is_number(b) and numeric is not None:
+        return numeric(float(a), float(b))
+    raise TypeError(f"{c_function_name[9:]} expects TPSA-compatible arguments")
+
+
+def unit(x):
+    return _unary(x, "mad_tpsa_unit", lambda v: math.copysign(1.0, v) if v else 0.0)
+
+
+def abs(x):  # noqa: A001 - intentionally mirrors built-in for TPSA math namespace
+    return _unary(x, "mad_tpsa_abs", math.fabs)
+
+
+def sqrt(x):
+    return _unary(x, "mad_tpsa_sqrt", math.sqrt)
+
+
+def exp(x):
+    return _unary(x, "mad_tpsa_exp", math.exp)
+
+
+def log(x):
+    return _unary(x, "mad_tpsa_log", math.log)
+
+
+def sin(x):
+    return _unary(x, "mad_tpsa_sin", math.sin)
+
+
+def cos(x):
+    return _unary(x, "mad_tpsa_cos", math.cos)
+
+
+def tan(x):
+    return _unary(x, "mad_tpsa_tan", math.tan)
+
+
+def cot(x):
+    return _unary(x, "mad_tpsa_cot", lambda v: 1.0 / math.tan(v))
+
+
+def sinc(x):
+    return _unary(x, "mad_tpsa_sinc", lambda v: 1.0 if v == 0.0 else math.sin(v) / v)
+
+
+def sinh(x):
+    return _unary(x, "mad_tpsa_sinh", math.sinh)
+
+
+def cosh(x):
+    return _unary(x, "mad_tpsa_cosh", math.cosh)
+
+
+def tanh(x):
+    return _unary(x, "mad_tpsa_tanh", math.tanh)
+
+
+def coth(x):
+    return _unary(x, "mad_tpsa_coth", lambda v: 1.0 / math.tanh(v))
+
+
+def sinhc(x):
+    return _unary(x, "mad_tpsa_sinhc", lambda v: 1.0 if v == 0.0 else math.sinh(v) / v)
+
+
+def asin(x):
+    return _unary(x, "mad_tpsa_asin", math.asin)
+
+
+def acos(x):
+    return _unary(x, "mad_tpsa_acos", math.acos)
+
+
+def atan(x):
+    return _unary(x, "mad_tpsa_atan", math.atan)
+
+
+def acot(x):
+    return _unary(x, "mad_tpsa_acot", lambda v: math.atan(1.0 / v))
+
+
+def asinc(x):
+    return _unary(x, "mad_tpsa_asinc", None)
+
+
+def asinh(x):
+    return _unary(x, "mad_tpsa_asinh", math.asinh)
+
+
+def acosh(x):
+    return _unary(x, "mad_tpsa_acosh", math.acosh)
+
+
+def atanh(x):
+    return _unary(x, "mad_tpsa_atanh", math.atanh)
+
+
+def acoth(x):
+    return _unary(x, "mad_tpsa_acoth", lambda v: math.atanh(1.0 / v))
+
+
+def asinhc(x):
+    return _unary(x, "mad_tpsa_asinhc", None)
+
+
+def erf(x):
+    return _unary(x, "mad_tpsa_erf", math.erf)
+
+
+def erfc(x):
+    return _unary(x, "mad_tpsa_erfc", math.erfc)
+
+
+def erfcx(x):
+    return _unary(x, "mad_tpsa_erfcx", lambda v: math.exp(v * v) * math.erfc(v))
+
+
+def erfi(x):
+    return _unary(x, "mad_tpsa_erfi", None)
+
+
+def wf(x):
+    return _unary(x, "mad_tpsa_wf", None)
+
+
+def invsqrt(x, scale: float = 1.0):
+    if isinstance(x, TPSA):
+        out = x._new_like()
+        load_library().mad_tpsa_invsqrt(x.ptr, float(scale), out.ptr)
+        return out
+    if isinstance(x, TPSAMap):
+        return x.apply(lambda component: invsqrt(component, scale))
+    if _is_number(x):
+        return float(scale) / math.sqrt(float(x))
+    raise TypeError("invsqrt expects a TPSA, TPSAMap, or real number")
+
+
+def sincos(x):
+    if isinstance(x, TPSA):
+        s = x._new_like()
+        c = x._new_like()
+        load_library().mad_tpsa_sincos(x.ptr, s.ptr, c.ptr)
+        return s, c
+    if isinstance(x, TPSAMap):
+        pairs = [sincos(component) for component in x]
+        return TPSAMap(s for s, _ in pairs), TPSAMap(c for _, c in pairs)
+    if _is_number(x):
+        return math.sin(float(x)), math.cos(float(x))
+    raise TypeError("sincos expects a TPSA, TPSAMap, or real number")
+
+
+def sincosh(x):
+    if isinstance(x, TPSA):
+        s = x._new_like()
+        c = x._new_like()
+        load_library().mad_tpsa_sincosh(x.ptr, s.ptr, c.ptr)
+        return s, c
+    if isinstance(x, TPSAMap):
+        pairs = [sincosh(component) for component in x]
+        return TPSAMap(s for s, _ in pairs), TPSAMap(c for _, c in pairs)
+    if _is_number(x):
+        return math.sinh(float(x)), math.cosh(float(x))
+    raise TypeError("sincosh expects a TPSA, TPSAMap, or real number")
+
+
+def atan2(y, x):
+    return _binary(y, x, "mad_tpsa_atan2", math.atan2)
+
+
+def hypot(x, y):
+    return _binary(x, y, "mad_tpsa_hypot", math.hypot)
+
+
+def hypot3(x, y, z):
+    if isinstance(x, TPSAMap) or isinstance(y, TPSAMap) or isinstance(z, TPSAMap):
+        maps = [arg for arg in (x, y, z) if isinstance(arg, TPSAMap)]
+        size = len(maps[0])
+        if any(len(m) != size for m in maps):
+            raise ValueError("TPSAMap sizes differ")
+        return TPSAMap(hypot3(_component_or_scalar(x, i), _component_or_scalar(y, i), _component_or_scalar(z, i)) for i in range(size))
+    if isinstance(x, TPSA) or isinstance(y, TPSA) or isinstance(z, TPSA):
+        a, b = coerce_common(x, y)
+        a, c = coerce_common(a, z)
+        out = a._new_like()
+        load_library().mad_tpsa_hypot3(a.ptr, b.ptr, c.ptr, out.ptr)
+        return out
+    if _is_number(x) and _is_number(y) and _is_number(z):
+        return math.sqrt(float(x) * float(x) + float(y) * float(y) + float(z) * float(z))
+    raise TypeError("hypot3 expects TPSA-compatible arguments")
+
+
+def _component_or_scalar(value, index: int):
+    return value[index] if isinstance(value, TPSAMap) else value

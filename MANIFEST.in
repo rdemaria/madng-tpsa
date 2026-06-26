@@ -1,0 +1,7 @@
+include README.md LICENSE
+include pyproject.toml setup.py
+recursive-include src/madng_tpsa/vendor *.c *.h
+include src/madng_tpsa/_build.py src/madng_tpsa/_cdefs.py
+recursive-include examples *.py
+recursive-include tools *.py
+recursive-include tests *.py
