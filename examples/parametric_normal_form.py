@@ -1,10 +1,10 @@
 """Parametric normal form of a one-degree-of-freedom FODO cell.
 
-This example is intentionally written as a small, readable normal-form driver. It
-uses the real MAD-NG-compatible TPSA backend provided by ``madng_tpsa`` and adds
-a tiny complex-TPSA layer in Python by storing complex series as real/imaginary
-TPSA pairs. That is enough for complex Courant-Snyder coordinates and for the
-homological equations used by normal-form term removal.
+This example is intentionally written as a small, readable normal-form driver.
+It uses both the real ``TPSA`` and complex ``CTPSA`` wrappers provided by
+``madng_tpsa``.  The complex layer is used for Courant-Snyder variables,
+complex eigenvalues, and the homological equations used by normal-form term
+removal.
 
 Model
 -----
@@ -36,7 +36,6 @@ Run with:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from math import acos, pi, sqrt
 from typing import Iterable, Sequence
 
@@ -49,132 +48,49 @@ PARAMETER_NAMES = ("dkd", "dkf", "ks", "ko", "kb")
 DKD, DKF, KS, KO, KB = range(5)
 
 
-@dataclass(frozen=True)
-class CTPSA:
-    """A complex TPSA represented by two real TPSA objects."""
-
-    re: mt.TPSA
-    im: mt.TPSA
-
-    @classmethod
-    def zero(cls, desc: mt.Descriptor) -> "CTPSA":
-        return cls(desc.constant(0.0), desc.constant(0.0))
-
-    @classmethod
-    def real(cls, value: mt.TPSA | float, desc: mt.Descriptor | None = None) -> "CTPSA":
-        if isinstance(value, mt.TPSA):
-            return cls(value, value.descriptor.constant(0.0))
-        if desc is None:
-            raise TypeError("desc is required when promoting a Python scalar")
-        return cls(desc.constant(float(value)), desc.constant(0.0))
-
-    @classmethod
-    def complex(cls, re: mt.TPSA | float, im: mt.TPSA | float, desc: mt.Descriptor | None = None) -> "CTPSA":
-        if isinstance(re, mt.TPSA):
-            descriptor = re.descriptor
-            real = re
-        else:
-            if desc is None:
-                raise TypeError("desc is required when promoting scalar real part")
-            descriptor = desc
-            real = desc.constant(float(re))
-        if isinstance(im, mt.TPSA):
-            if im.descriptor.address != descriptor.address:
-                raise ValueError("real and imaginary TPSA descriptors differ")
-            imag = im
-        else:
-            imag = descriptor.constant(float(im))
-        return cls(real, imag)
-
-    @property
-    def descriptor(self) -> mt.Descriptor:
-        return self.re.descriptor
-
-    def conj(self) -> "CTPSA":
-        return CTPSA(self.re, -self.im)
-
-    def variable_coefficient(self, j: int, k: int) -> "CTPSA":
-        """Coefficient of z^j zbar^k as a parameter-only complex TPSA."""
-
-        return CTPSA(
-            variable_coefficient(self.re, (j, k)),
-            variable_coefficient(self.im, (j, k)),
-        )
-
-    def without_variable_order_below(self, order: int) -> "CTPSA":
-        return CTPSA(drop_variable_orders_below(self.re, order), drop_variable_orders_below(self.im, order))
-
-    def __add__(self, other: object) -> "CTPSA":
-        other = promote_complex(other, self.descriptor)
-        return CTPSA(self.re + other.re, self.im + other.im)
-
-    def __radd__(self, other: object) -> "CTPSA":
-        return self.__add__(other)
-
-    def __sub__(self, other: object) -> "CTPSA":
-        other = promote_complex(other, self.descriptor)
-        return CTPSA(self.re - other.re, self.im - other.im)
-
-    def __rsub__(self, other: object) -> "CTPSA":
-        other = promote_complex(other, self.descriptor)
-        return CTPSA(other.re - self.re, other.im - self.im)
-
-    def __neg__(self) -> "CTPSA":
-        return CTPSA(-self.re, -self.im)
-
-    def __mul__(self, other: object) -> "CTPSA":
-        other = promote_complex(other, self.descriptor)
-        return CTPSA(self.re * other.re - self.im * other.im, self.re * other.im + self.im * other.re)
-
-    def __rmul__(self, other: object) -> "CTPSA":
-        return self.__mul__(other)
-
-    def __truediv__(self, other: object) -> "CTPSA":
-        other = promote_complex(other, self.descriptor)
-        den = other.re * other.re + other.im * other.im
-        return CTPSA((self.re * other.re + self.im * other.im) / den, (self.im * other.re - self.re * other.im) / den)
-
-    def __rtruediv__(self, other: object) -> "CTPSA":
-        return promote_complex(other, self.descriptor).__truediv__(self)
-
-    def __pow__(self, power: int) -> "CTPSA":
-        if not isinstance(power, int) or power < 0:
-            raise TypeError("CTPSA only implements non-negative integer powers in this example")
-        out = CTPSA.real(1.0, self.descriptor)
-        base = self
-        n = power
-        while n:
-            if n & 1:
-                out = out * base
-            n >>= 1
-            if n:
-                base = base * base
-        return out
-
-
-def promote_complex(value: object, desc: mt.Descriptor) -> CTPSA:
-    if isinstance(value, CTPSA):
-        if value.descriptor.address != desc.address:
-            raise ValueError("complex TPSA descriptors differ")
-        return value
-    if isinstance(value, mt.TPSA):
-        if value.descriptor.address != desc.address:
-            raise ValueError("TPSA descriptors differ")
-        return CTPSA.real(value)
-    if isinstance(value, complex):
-        return CTPSA.complex(float(value.real), float(value.imag), desc)
-    if isinstance(value, (int, float)):
-        return CTPSA.real(float(value), desc)
-    raise TypeError(f"cannot promote {type(value).__name__} to CTPSA")
-
-
-def monomial_tpsa(desc: mt.Descriptor, monomial: Sequence[int], value: float) -> mt.TPSA:
+def tpsa_monomial(desc: mt.Descriptor, monomial: Sequence[int], value: float) -> mt.TPSA:
     out = desc.constant(0.0)
     out[tuple(monomial)] = float(value)
     return out
 
 
-def variable_coefficient(f: mt.TPSA, variable_powers: tuple[int, int]) -> mt.TPSA:
+def ctpsa_zero(desc: mt.Descriptor) -> mt.CTPSA:
+    return desc.complex_constant(0.0)
+
+
+def ctpsa_real(value: mt.TPSA | float, desc: mt.Descriptor | None = None) -> mt.CTPSA:
+    if isinstance(value, mt.TPSA):
+        return mt.CTPSA.from_tpsa(value)
+    if desc is None:
+        raise TypeError("desc is required when promoting a scalar to CTPSA")
+    return desc.complex_constant(float(value))
+
+
+def ctpsa_from_parts(
+    real: mt.TPSA | float,
+    imag: mt.TPSA | float = 0.0,
+    desc: mt.Descriptor | None = None,
+) -> mt.CTPSA:
+    if isinstance(real, mt.TPSA):
+        descriptor = real.descriptor
+        real_part = real
+    else:
+        if desc is None:
+            raise TypeError("desc is required when real part is a scalar")
+        descriptor = desc
+        real_part = desc.constant(float(real))
+
+    if isinstance(imag, mt.TPSA):
+        if imag.descriptor.address != descriptor.address:
+            raise ValueError("real and imaginary TPSA descriptors differ")
+        imag_part = imag
+    else:
+        imag_part = descriptor.constant(float(imag))
+
+    return mt.CTPSA.from_tpsa(real_part, imag_part)
+
+
+def tpsa_variable_coefficient(f: mt.TPSA, variable_powers: tuple[int, int]) -> mt.TPSA:
     """Return the parameter TPSA multiplying x^j p^k in ``f``."""
 
     out = f.descriptor.constant(0.0)
@@ -184,11 +100,13 @@ def variable_coefficient(f: mt.TPSA, variable_powers: tuple[int, int]) -> mt.TPS
     return out
 
 
-def drop_variable_orders_below(f: mt.TPSA, order: int) -> mt.TPSA:
-    out = f.descriptor.constant(0.0)
+def ctpsa_variable_coefficient(f: mt.CTPSA, variable_powers: tuple[int, int]) -> mt.CTPSA:
+    """Return the parameter CTPSA multiplying z^j zbar^k in ``f``."""
+
+    out = ctpsa_zero(f.descriptor)
     for monomial, value in f.coefficients():
-        if sum(monomial[:N_VAR]) >= order:
-            out[monomial] = value
+        if monomial[:N_VAR] == variable_powers:
+            out[(0, 0, *monomial[N_VAR:])] = value
     return out
 
 
@@ -198,15 +116,24 @@ def tpsa_variable_order_terms(f: mt.TPSA, order: int) -> Iterable[tuple[tuple[in
             yield monomial, value
 
 
-def complex_substitute(f: mt.TPSA, substitutions: Sequence[CTPSA]) -> CTPSA:
-    """Evaluate a real TPSA in complex substitutions for the two variables."""
+def has_complex_terms(f: mt.CTPSA, *, eps: float = 0.0) -> bool:
+    return any(abs(value) > eps for _, value in f.coefficients())
+
+
+def complex_substitute(f: mt.TPSA, substitutions: Sequence[mt.CTPSA]) -> mt.CTPSA:
+    """Evaluate a real TPSA in complex substitutions for the two variables.
+
+    This helper is intentionally explicit because it preserves the parameter
+    monomials while substituting only the dynamical variables.  It uses the real
+    C TPSA coefficient iterator and the complex C TPSA algebra for the products.
+    """
 
     desc = f.descriptor
-    out = CTPSA.zero(desc)
+    out = ctpsa_zero(desc)
     for monomial, value in f.coefficients():
         j, k = monomial[:N_VAR]
-        param_monomial = (0, 0, *monomial[N_VAR:])
-        term = CTPSA.real(monomial_tpsa(desc, param_monomial, value))
+        parameter_monomial = (0, 0, *monomial[N_VAR:])
+        term = ctpsa_real(tpsa_monomial(desc, parameter_monomial, value))
         if j:
             term = term * (substitutions[0] ** j)
         if k:
@@ -216,19 +143,13 @@ def complex_substitute(f: mt.TPSA, substitutions: Sequence[CTPSA]) -> CTPSA:
 
 
 def substitute_real(f: mt.TPSA, substitutions: Sequence[mt.TPSA]) -> mt.TPSA:
-    """Evaluate a real TPSA in real substitutions for x,p while preserving parameters.
-
-    This mirrors MAD-NG map composition for the small examples here. Keeping it
-    explicit makes the parameter flow visible and also lets the example run with
-    any backend that implements scalar TPSA algebra, even if its map-composition
-    shortcut has not implemented parameter propagation yet.
-    """
+    """Evaluate a real TPSA in real substitutions for x,p while preserving parameters."""
 
     desc = f.descriptor
     out = desc.constant(0.0)
     for monomial, value in f.coefficients():
         j, k = monomial[:N_VAR]
-        term = monomial_tpsa(desc, (0, 0, *monomial[N_VAR:]), value)
+        term = tpsa_monomial(desc, (0, 0, *monomial[N_VAR:]), value)
         if j:
             term = term * (substitutions[0] ** j)
         if k:
@@ -252,26 +173,30 @@ def chain_maps(*maps: mt.TPSAMap) -> mt.TPSAMap:
     return out
 
 
-def compose_complex_map(outer: Sequence[CTPSA], inner: Sequence[CTPSA]) -> tuple[CTPSA, CTPSA]:
-    return tuple(complex_substitute(component.re, inner) + 1j * complex_substitute(component.im, inner) for component in outer)  # type: ignore[return-value]
+def compose_complex_map(outer: Sequence[mt.CTPSA], inner: Sequence[mt.CTPSA]) -> tuple[mt.CTPSA, mt.CTPSA]:
+    """Compose complex maps while preserving the parameter monomials explicitly."""
+
+    return tuple(
+        complex_substitute(component.real, inner) + 1j * complex_substitute(component.imag, inner)
+        for component in outer
+    )  # type: ignore[return-value]
 
 
-def complex_map_from_real_map(real_map: mt.TPSAMap) -> tuple[CTPSA, CTPSA]:
+def complex_map_from_real_map(real_map: mt.TPSAMap) -> tuple[mt.CTPSA, mt.CTPSA]:
     """Return z' and zbar' for a real normalized map [X', P']."""
 
-    desc = real_map.descriptor
     root2 = sqrt(2.0)
-    z = CTPSA.complex(real_map[0] / root2, real_map[1] / root2, desc)
-    zbar = z.conj()
+    z = ctpsa_from_parts(real_map[0] / root2, real_map[1] / root2)
+    zbar = z.conjugate()
     return z, zbar
 
 
-def real_from_complex_pair(z: CTPSA, zbar: CTPSA) -> tuple[mt.TPSA, mt.TPSA]:
+def real_from_complex_pair(z: mt.CTPSA, zbar: mt.CTPSA) -> tuple[mt.TPSA, mt.TPSA]:
     """Convert z,zbar to real normalized X,P, assuming zbar is the conjugate map."""
 
     root2 = sqrt(2.0)
-    x = (z + zbar).re / root2
-    p = ((z - zbar) / 1j).re / root2
+    x = (z + zbar).real / root2
+    p = ((z - zbar) / 1j).real / root2
     return x, p
 
 
@@ -283,7 +208,6 @@ def constant_plus_parameter(desc: mt.Descriptor, nominal: float, index: int) -> 
 
 
 def build_fodo_map(desc: mt.Descriptor) -> mt.TPSAMap:
-    x, p = desc.variables()
     kf = constant_plus_parameter(desc, 0.86, DKF)
     kd = constant_plus_parameter(desc, -0.74, DKD)
     ks = desc.constant(0.0) + desc.parameter(KS + 1)
@@ -353,10 +277,10 @@ def translate_to_closed_orbit(one_turn: mt.TPSAMap, closed_orbit: mt.TPSAMap) ->
 def linear_normalizing_matrix(local_map: mt.TPSAMap) -> tuple[tuple[mt.TPSA, mt.TPSA], tuple[mt.TPSA, mt.TPSA], mt.TPSA, mt.TPSA]:
     """Return A, A inverse, cos(mu), sin(mu) as parameter TPSA values."""
 
-    m11 = variable_coefficient(local_map[0], (1, 0))
-    m12 = variable_coefficient(local_map[0], (0, 1))
-    m21 = variable_coefficient(local_map[1], (1, 0))
-    m22 = variable_coefficient(local_map[1], (0, 1))
+    m11 = tpsa_variable_coefficient(local_map[0], (1, 0))
+    m12 = tpsa_variable_coefficient(local_map[0], (0, 1))
+    m21 = tpsa_variable_coefficient(local_map[1], (1, 0))
+    m22 = tpsa_variable_coefficient(local_map[1], (0, 1))
 
     cos_mu = 0.5 * (m11 + m22)
     sin_mu = mt.sqrt(1.0 - cos_mu * cos_mu)
@@ -385,7 +309,11 @@ def apply_linear_matrix(matrix: tuple[tuple[mt.TPSA, mt.TPSA], tuple[mt.TPSA, mt
     ])
 
 
-def normalize_linear(local_map: mt.TPSAMap, a: tuple[tuple[mt.TPSA, mt.TPSA], tuple[mt.TPSA, mt.TPSA]], ainv: tuple[tuple[mt.TPSA, mt.TPSA], tuple[mt.TPSA, mt.TPSA]]) -> mt.TPSAMap:
+def normalize_linear(
+    local_map: mt.TPSAMap,
+    a: tuple[tuple[mt.TPSA, mt.TPSA], tuple[mt.TPSA, mt.TPSA]],
+    ainv: tuple[tuple[mt.TPSA, mt.TPSA], tuple[mt.TPSA, mt.TPSA]],
+) -> mt.TPSAMap:
     desc = local_map.descriptor
     normalized_variables = mt.TPSAMap.identity(desc)
     to_physical = apply_linear_matrix(a, normalized_variables)
@@ -393,13 +321,13 @@ def normalize_linear(local_map: mt.TPSAMap, a: tuple[tuple[mt.TPSA, mt.TPSA], tu
     return compose_real_map(to_normal, to_physical)
 
 
-def to_complex_coordinates(normalized_map: mt.TPSAMap) -> tuple[CTPSA, CTPSA]:
+def to_complex_coordinates(normalized_map: mt.TPSAMap) -> tuple[mt.CTPSA, mt.CTPSA]:
     """Rewrite a real normalized map in complex variables z,zbar."""
 
     desc = normalized_map.descriptor
-    z, zbar = desc.variables()
-    z = CTPSA.real(z)
-    zbar = CTPSA.real(zbar)
+    z_real, zbar_real = desc.variables()
+    z = ctpsa_real(z_real)
+    zbar = ctpsa_real(zbar_real)
     root2 = sqrt(2.0)
     x_sub = (z + zbar) / root2
     p_sub = (z - zbar) / (1j * root2)
@@ -409,41 +337,41 @@ def to_complex_coordinates(normalized_map: mt.TPSAMap) -> tuple[CTPSA, CTPSA]:
 
 
 def remove_nonresonant_terms(
-    complex_map: tuple[CTPSA, CTPSA],
-    lam: CTPSA,
+    complex_map: tuple[mt.CTPSA, mt.CTPSA],
+    lam: mt.CTPSA,
     *,
     max_order: int,
-) -> tuple[tuple[CTPSA, CTPSA], tuple[CTPSA, CTPSA]]:
+) -> tuple[tuple[mt.CTPSA, mt.CTPSA], tuple[mt.CTPSA, mt.CTPSA]]:
     """Compute nonlinear normalizing map H and normal form N = H^-1 F H."""
 
     desc = lam.descriptor
     z_real, zbar_real = desc.variables()
-    identity = (CTPSA.real(z_real), CTPSA.real(zbar_real))
+    identity = (ctpsa_real(z_real), ctpsa_real(zbar_real))
     h_total = identity
     current = complex_map
-    lambar = lam.conj()
+    lambar = lam.conjugate()
 
     for order in range(2, max_order + 1):
-        h_z = CTPSA.zero(desc)
-        h_zbar = CTPSA.zero(desc)
+        h_z = ctpsa_zero(desc)
+        h_zbar = ctpsa_zero(desc)
 
         for j in range(order + 1):
             k = order - j
             monomial_eigenvalue = (lam**j) * (lambar**k)
 
-            cz = current[0].variable_coefficient(j, k)
-            if list(cz.re.coefficients()) or list(cz.im.coefficients()):
+            cz = ctpsa_variable_coefficient(current[0], (j, k))
+            if has_complex_terms(cz):
                 resonant_for_z = j == k + 1
                 if not resonant_for_z:
                     h_z = h_z + cz / (monomial_eigenvalue - lam) * (identity[0] ** j) * (identity[1] ** k)
 
-            czbar = current[1].variable_coefficient(j, k)
-            if list(czbar.re.coefficients()) or list(czbar.im.coefficients()):
+            czbar = ctpsa_variable_coefficient(current[1], (j, k))
+            if has_complex_terms(czbar):
                 resonant_for_zbar = k == j + 1
                 if not resonant_for_zbar:
                     h_zbar = h_zbar + czbar / (monomial_eigenvalue - lambar) * (identity[0] ** j) * (identity[1] ** k)
 
-        if not (list(h_z.re.coefficients()) or list(h_z.im.coefficients()) or list(h_zbar.re.coefficients()) or list(h_zbar.im.coefficients())):
+        if not (has_complex_terms(h_z) or has_complex_terms(h_zbar)):
             continue
 
         h_order = (identity[0] + h_z, identity[1] + h_zbar)
@@ -458,16 +386,15 @@ def remove_nonresonant_terms(
     return h_total, current
 
 
-def detuning_terms(normal_form: tuple[CTPSA, CTPSA], lam: CTPSA, *, max_order: int) -> list[tuple[int, mt.TPSA, mt.TPSA]]:
+def detuning_terms(normal_form: tuple[mt.CTPSA, mt.CTPSA], lam: mt.CTPSA, *, max_order: int) -> list[tuple[int, mt.TPSA, mt.TPSA]]:
     """Return [(q, dmu_q, growth_q)] for z' = lambda z exp(i sum dmu_q J^q)."""
 
     out: list[tuple[int, mt.TPSA, mt.TPSA]] = []
     for q in range(1, (max_order - 1) // 2 + 1):
-        coeff = normal_form[0].variable_coefficient(q + 1, q)
+        coeff = ctpsa_variable_coefficient(normal_form[0], (q + 1, q))
         phase_coeff = coeff / lam
-        out.append((q, phase_coeff.im, phase_coeff.re))
+        out.append((q, phase_coeff.imag, phase_coeff.real))
     return out
-
 
 
 def acos_parameter_series(cos_mu: mt.TPSA) -> mt.TPSA:
@@ -486,6 +413,7 @@ def acos_parameter_series(cos_mu: mt.TPSA) -> mt.TPSA:
     if cos_mu.descriptor.parameter_order >= 2:
         mu = mu - (c0 / (2.0 * s0**3)) * (delta * delta)
     return mu
+
 
 def format_series(f: mt.TPSA, *, eps: float = 1e-12, max_terms: int = 10) -> str:
     terms: list[str] = []
@@ -525,7 +453,7 @@ def main() -> None:
 
     # With z = (X + i P)/sqrt(2) and R = [[cos, sin], [-sin, cos]],
     # the linear complex eigenvalue is exp(-i*mu).
-    lam = CTPSA.complex(cos_mu, -sin_mu)
+    lam = ctpsa_from_parts(cos_mu, -sin_mu)
     complex_map = to_complex_coordinates(normalized_map)
     nonlinear_a, normal_form = remove_nonresonant_terms(complex_map, lam, max_order=map_order)
 
@@ -546,8 +474,8 @@ def main() -> None:
 
     print("Nonlinear complex normalizing map H: z_old = H_z(z, zbar; parameters)")
     for order in range(2, map_order + 1):
-        hz_terms = [item for item in tpsa_variable_order_terms(nonlinear_a[0].re, order)]
-        hi_terms = [item for item in tpsa_variable_order_terms(nonlinear_a[0].im, order)]
+        hz_terms = [item for item in tpsa_variable_order_terms(nonlinear_a[0].real, order)]
+        hi_terms = [item for item in tpsa_variable_order_terms(nonlinear_a[0].imag, order)]
         if hz_terms or hi_terms:
             print(f"  H_z order {order}: {len(hz_terms)} real terms, {len(hi_terms)} imaginary terms")
     print()
