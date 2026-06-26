@@ -391,3 +391,85 @@ def hypot3(x, y, z):
 
 def _component_or_scalar(value, index: int):
     return value[index] if isinstance(value, (TPSAMap, CTPSAMap)) else value
+    """Return the normalized sign/unit TPSA function."""
+
+    """Return the absolute value for real TPSA or magnitude for complex TPSA."""
+
+    """Delegate to Python built-in abs for internal use."""
+
+    """Return the complex conjugate of a CTPSA or CTPSAMap."""
+
+    """Return the real projection of a supported TPSA value."""
+
+    """Return the imaginary projection of a supported TPSA value."""
+
+    """Return the complex phase of a CTPSA value."""
+
+    """Return the square root of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the exponential of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the natural logarithm of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the sine of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the cosine of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the tangent of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the cotangent of a scalar, TPSA, CTPSA, or map."""
+
+    """Return sin(x)/x for a scalar, TPSA, CTPSA, or map."""
+
+    """Return the hyperbolic sine of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the hyperbolic cosine of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the hyperbolic tangent of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the hyperbolic cotangent of a scalar, TPSA, CTPSA, or map."""
+
+    """Return sinh(x)/x for a scalar, TPSA, CTPSA, or map."""
+
+    """Return the inverse sine of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the inverse cosine of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the inverse tangent of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the inverse cotangent of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the inverse-sinc MAD-NG TPSA function where supported."""
+
+    """Return the inverse hyperbolic sine of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the inverse hyperbolic cosine of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the inverse hyperbolic tangent of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the inverse hyperbolic cotangent of a scalar, TPSA, CTPSA, or map."""
+
+    """Return asinh(x)/x through the MAD-NG TPSA backend where supported."""
+
+    """Return the error function of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the complementary error function of a scalar, TPSA, CTPSA, or map."""
+
+    """Return the scaled complementary error function."""
+
+    """Return the imaginary error function through the MAD-NG backend."""
+
+    """Return the Faddeeva-related MAD-NG special function."""
+
+    """Return scale divided by the square root of a supported value."""
+
+    """Return sine and cosine together."""
+
+    """Return hyperbolic sine and cosine together."""
+
+    """Return real atan2 for TPSA-compatible real arguments."""
+
+    """Return sqrt(x*x + y*y) for supported values."""
+
+    """Return sqrt(x*x + y*y + z*z) for supported values."""
+

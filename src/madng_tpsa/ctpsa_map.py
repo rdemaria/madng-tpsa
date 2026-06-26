@@ -163,3 +163,53 @@ def _reflected_name(name: str) -> str:
         "__truediv__": "__rtruediv__",
         "__pow__": "__rpow__",
     }[name]
+        """Return a complex identity map."""
+
+        """Return the descriptor shared by all complex map components."""
+
+        """Return a component-wise copy of this complex map."""
+
+        """Apply a function to each component and return a new complex map."""
+
+        """Compose this complex map with an inner map."""
+
+        """Translate/evaluate this complex map around a numeric vector."""
+
+        """Numerically evaluate this complex TPSA map."""
+
+        """Return the formal inverse complex map using MAD-NG CTPSA inversion."""
+
+        """Return the MAD-NG norm of the complex map."""
+
+        """Return the number of complex map components."""
+
+        """Return one component or a slice of components."""
+
+        """Iterate over complex map components."""
+
+        """Compose complex maps using the @ operator."""
+
+        """Return a component-wise complex map sum."""
+
+        """Return a reflected component-wise complex map sum."""
+
+        """Return a component-wise complex map difference."""
+
+        """Return a reflected component-wise complex map difference."""
+
+        """Return a component-wise complex map product or scaling."""
+
+        """Return a reflected component-wise complex map product or scaling."""
+
+        """Return a component-wise complex map quotient."""
+
+        """Return a reflected component-wise complex map quotient."""
+
+        """Raise each complex map component to the given power."""
+
+        """Return the component-wise additive inverse."""
+
+        """Return a copy of this complex map."""
+
+        """Return a concise representation of this complex map."""
+

@@ -258,3 +258,19 @@ def ptr_address(ptr) -> int:
 
 def path_exists(path: str | os.PathLike[str]) -> bool:
     return Path(path).exists()
+    """Return the currently loaded C library object, if any."""
+
+    """Return the external path or vendored identifier for the loaded library."""
+
+    """Return True when a MAD-NG-compatible TPSA backend can be loaded."""
+
+    """Return the last backend-loading diagnostic message, if any."""
+
+    """Return the MAD-NG default-order sentinel value."""
+
+    """Return the MAD-NG same-order sentinel value."""
+
+    """Return the integer address of a CFFI pointer."""
+
+    """Return True when the given filesystem path exists."""
+
