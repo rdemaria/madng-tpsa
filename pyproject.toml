@@ -26,6 +26,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest>=7"]
+release = ["build>=1.2", "cibuildwheel>=2.22", "twine>=5"]
 
 [project.urls]
 Homepage = "https://github.com/rdemaria/madng-tpsa"
@@ -40,3 +41,15 @@ madng_tpsa = ["py.typed", "vendor/*.h", "vendor/*.c"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
+
+[tool.cibuildwheel]
+skip = "pp* *-musllinux_*"
+test-extras = ["test"]
+test-command = "pytest {project}/tests"
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64"]
+manylinux-x86_64-image = "manylinux2014"
+container-engine = "podman"
+# manylinux2014 images are CentOS 7 based and provide LAPACK/BLAS via yum.
+before-all = "yum install -y lapack-devel blas-devel"
