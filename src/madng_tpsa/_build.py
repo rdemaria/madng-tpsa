@@ -20,6 +20,7 @@ ffibuilder.cdef(CDEF)
 extra_compile_args = ["-O2"]
 if sys.platform != "win32":
     extra_compile_args.append("-std=c99")
+extra_link_args: list[str] = []
 
 def _split_libs(value: str | None) -> list[str]:
     if not value:
@@ -31,9 +32,14 @@ def _split_libs(value: str | None) -> list[str]:
 # Override with MADNG_TPSA_LAPACK_LIBRARIES="openblas" or similar when needed.
 lapack_libraries = _split_libs(os.environ.get("MADNG_TPSA_LAPACK_LIBRARIES"))
 if not lapack_libraries:
-    lapack_libraries = ["lapack", "blas"]
+    if sys.platform == "darwin":
+        extra_link_args.extend(["-framework", "Accelerate"])
+    else:
+        lapack_libraries = ["lapack", "blas"]
 
-libraries = [] if sys.platform == "win32" else ["m"]
+libraries = []
+if sys.platform not in {"darwin", "win32"}:
+    libraries.append("m")
 libraries += lapack_libraries
 
 ffibuilder.set_source(
@@ -43,6 +49,7 @@ ffibuilder.set_source(
     include_dirs=["src/madng_tpsa/vendor"],
     libraries=libraries,
     extra_compile_args=extra_compile_args,
+    extra_link_args=extra_link_args,
 )
 
 if __name__ == "__main__":
