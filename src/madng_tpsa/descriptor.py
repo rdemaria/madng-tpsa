@@ -192,6 +192,39 @@ class Descriptor:
 
         return TPSA.parameter(self, index, value=value, order=order)
 
+    def complex_constant(self, value: complex = 0.0, *, order: int | None = None):
+        """Create a complex scalar TPSA value using this descriptor."""
+
+        from .ctpsa import CTPSA
+
+        return CTPSA.constant(self, value, order=order)
+
+    def complex_variable(
+        self,
+        index: int,
+        *,
+        value: complex = 0.0,
+        scale: complex = 1.0,
+        order: int | None = None,
+    ):
+        """Create the one-based MAD-NG variable ``index`` as a complex TPSA value."""
+
+        from .ctpsa import CTPSA
+
+        return CTPSA.variable(self, index, value=value, scale=scale, order=order)
+
+    def complex_variables(self, *, order: int | None = None) -> tuple:
+        """Return all descriptor variables as complex TPSA values."""
+
+        return tuple(self.complex_variable(i + 1, order=order) for i in range(self.n_variables))
+
+    def complex_parameter(self, index: int, *, value: complex = 0.0, order: int | None = None):
+        """Create the one-based MAD-NG parameter ``index`` as a complex TPSA value."""
+
+        from .ctpsa import CTPSA
+
+        return CTPSA.parameter(self, index, value=value, order=order)
+
     def close(self) -> None:
         """Release this descriptor.
 

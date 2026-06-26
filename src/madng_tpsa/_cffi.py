@@ -40,6 +40,10 @@ _REQUIRED_SYMBOLS = (
     "mad_tpsa_add",
     "mad_tpsa_sin",
     "mad_tpsa_compose",
+    "mad_ctpsa_newd",
+    "mad_ctpsa_add",
+    "mad_ctpsa_cplx",
+    "mad_ctpsa_compose",
 )
 
 _lib = None

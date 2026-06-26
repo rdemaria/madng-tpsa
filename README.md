@@ -1,11 +1,11 @@
 # madng-tpsa
 
-`madng-tpsa` is a self-contained Python package exposing a MAD-NG-compatible real TPSA API through CFFI. It provides:
+`madng-tpsa` is a self-contained Python package exposing MAD-NG-compatible real and complex TPSA APIs through CFFI. It provides:
 
 - descriptor construction via `DescriptorBuilder` and `descriptor(...)`;
 - scalar TPSA values via `TPSA`;
-- TPSA maps/vectors via `TPSAMap`;
-- mathematical functions such as `sin`, `cos`, `exp`, `log`, `sqrt`, `atan2`, and `hypot`;
+- TPSA maps/vectors via `TPSAMap` and `CTPSAMap`;
+- mathematical functions such as `sin`, `cos`, `exp`, `log`, `sqrt`, `atan2`, `hypot`, `conj`, `real`, and `imag`;
 - Python operator overloading so TPSA algebra looks like ordinary Python algebra.
 
 The import package is `madng_tpsa`:
@@ -18,7 +18,7 @@ import madng_tpsa as mt
 
 This version builds a bundled CFFI extension named `madng_tpsa._madng_tpsa_cffi` at install time. By default, descriptors and TPSA values use that private C backend, so neither MAD-NG nor `pymadng` is a runtime dependency.
 
-The bundled backend exports the MAD-NG real TPSA C symbols used by the Python layer, including the map inverse entry point `mad_tpsa_minv`. Map inversion is LAPACK-backed: the C backend calls LAPACK `dgesv_` to invert the linear part and then performs the TPSA Newton inverse in C. The wrapper can still target an external, optimized MAD-NG/libgtpsa shared library with the same public symbols. MAD-NG and this package are GPLv3-or-later.
+The bundled backend exports the MAD-NG real and complex TPSA C symbols used by the Python layer, including the map inverse entry points `mad_tpsa_minv` and `mad_ctpsa_minv`. Map inversion is LAPACK-backed: the C backend calls LAPACK `dgesv_` to invert the linear part and then performs the TPSA Newton inverse in C. The wrapper can still target an external, optimized MAD-NG/libgtpsa shared library with the same public symbols. MAD-NG and this package are GPLv3-or-later.
 
 At runtime:
 
@@ -62,7 +62,7 @@ MADNG_TPSA_LAPACK_LIBRARIES=lapack,blas python -m pip install .
 
 ## Optional: use an external MAD-NG/libgtpsa shared library
 
-The loader still supports external libraries exporting MAD-NG TPSA symbols such as `mad_desc_newv`, `mad_tpsa_newd`, `mad_tpsa_add`, and `mad_tpsa_compose`:
+The loader still supports external libraries exporting MAD-NG TPSA symbols such as `mad_desc_newv`, `mad_tpsa_newd`, `mad_tpsa_add`, `mad_tpsa_compose`, `mad_ctpsa_newd`, and `mad_ctpsa_compose`:
 
 ```bash
 export MADNG_TPSA_LIBRARY=/absolute/path/to/libmadng_tpsa.so
@@ -166,6 +166,35 @@ truncated = f.cut_order(4)
 print(f.to_dict())           # {(monomial_tuple): coefficient, ...}
 ```
 
+## Complex TPSA values
+
+The package also wraps the complex MAD-NG CTPSA API (`mad_ctpsa_*`) through `CTPSA` and `CTPSAMap`. Python passes complex scalar arguments through real/imaginary `_r` entry points, avoiding CFFI ABI ambiguity for complex-by-value arguments while still using the C CTPSA backend for algebra, functions, composition, evaluation, and map inversion.
+
+```python
+import madng_tpsa as mt
+
+desc = mt.descriptor(2, 5)
+x, y = desc.variables()
+
+z = mt.CTPSA.from_tpsa(x) + 1j * mt.CTPSA.from_tpsa(y)
+f = mt.exp(1j * z) + z**2
+
+print(f[1, 0])       # coefficient of x
+print(f.real[2, 0])  # real projection as a TPSA
+print(f.imag[1, 1])  # imaginary projection as a TPSA
+
+cm = mt.CTPSAMap([z, mt.conj(z)])
+print(cm.evaluate([0.1, 0.2]))
+```
+
+Complex maps mirror the real map API:
+
+```python
+identity = mt.CTPSAMap.identity(desc)
+composed = cm @ identity
+translated = cm.translate([0.01 + 0.0j, 0.0])
+```
+
 ## TPSA maps
 
 A `TPSAMap` is a vector of TPSA components. Arithmetic is component-wise; `@` means composition.
@@ -222,11 +251,12 @@ The test suite runs against the bundled LAPACK-linked C core by default. In the 
 python examples/basic_polynomial.py
 python examples/maps.py
 python examples/parameters.py
+python examples/complex_tpsa.py
 ```
 
 ## Notes and limitations
 
-- The wrapper targets the real TPSA API (`mad_tpsa_*`). Complex TPSA (`mad_ctpsa_*`) is not wrapped yet.
+- The wrapper targets both the real TPSA API (`mad_tpsa_*`) and a useful subset of the complex TPSA API (`mad_ctpsa_*`).
 - The bundled backend is designed for portability and correctness on small/medium descriptors. For MAD-NG's full optimized performance profile, build or point to an external MAD-NG/libgtpsa shared library.
 - Source builds require LAPACK/BLAS because map inversion is part of the supported TPSA algebra.
 - Descriptor destruction is delicate in C APIs: no TPSA may still use a descriptor when `mad_desc_del` is called. Prefer normal Python object lifetime over explicit `Descriptor.close()` unless you know the TPSA values are gone.

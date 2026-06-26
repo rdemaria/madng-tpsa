@@ -1,4 +1,4 @@
-"""Python wrapper for MAD-NG real TPSA values and maps.
+"""Python wrapper for MAD-NG real and complex TPSA values and maps.
 
 Importing this package is cheap and does not load MAD-NG. The C library is
 opened lazily when you build a descriptor or explicitly call ``load_library``.
@@ -10,10 +10,13 @@ from ._cffi import availability_error, is_available, load_library, loaded_librar
 from .descriptor import Descriptor, DescriptorBuilder, descriptor
 from .exceptions import DescriptorClosedError, MadngLibraryError, MadngTPSAError, TPSAClosedError
 from .map import TPSAMap
+from .ctpsa import CTPSA, complex_from_mapping
+from .ctpsa_map import CTPSAMap
 from .tpsa import TPSA, from_mapping
 from . import functions
 from .functions import (
     abs,
+    carg,
     acos,
     acosh,
     acot,
@@ -25,6 +28,7 @@ from .functions import (
     atan,
     atan2,
     atanh,
+    conj,
     cos,
     cosh,
     cot,
@@ -36,8 +40,10 @@ from .functions import (
     exp,
     hypot,
     hypot3,
+    imag,
     invsqrt,
     log,
+    real,
     sin,
     sincos,
     sincosh,
@@ -51,15 +57,18 @@ from .functions import (
     wf,
 )
 
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 
 __all__ = [
     "Descriptor",
     "DescriptorBuilder",
     "TPSA",
+    "CTPSA",
     "TPSAMap",
+    "CTPSAMap",
     "descriptor",
     "from_mapping",
+    "complex_from_mapping",
     "load_library",
     "is_available",
     "availability_error",
@@ -70,6 +79,7 @@ __all__ = [
     "TPSAClosedError",
     "functions",
     "abs",
+    "carg",
     "acos",
     "acosh",
     "acot",
@@ -81,6 +91,7 @@ __all__ = [
     "atan",
     "atan2",
     "atanh",
+    "conj",
     "cos",
     "cosh",
     "cot",
@@ -92,8 +103,10 @@ __all__ = [
     "exp",
     "hypot",
     "hypot3",
+    "imag",
     "invsqrt",
     "log",
+    "real",
     "sin",
     "sincos",
     "sincosh",

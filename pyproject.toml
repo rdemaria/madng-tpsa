@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "madng-tpsa"
-version = "0.3.1"
-description = "Self-contained Python CFFI wrapper for MAD-NG-compatible TPSA values and maps with LAPACK-backed inversion"
+version = "0.4.0"
+description = "Self-contained Python CFFI wrapper for MAD-NG-compatible real and complex TPSA values and maps"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "GPL-3.0-or-later"
