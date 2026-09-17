@@ -29,7 +29,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest>=7"]
+test = ["pytest>=7", "numpy>=1.24"]
+examples = ["numpy>=1.24"]
 release = ["build>=1.2", "cibuildwheel>=2.22", "twine>=5"]
 
 [project.urls]
