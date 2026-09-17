@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel", "cffi>=1.16"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "madng-tpsa"
+name = "madng-tpsa-test"
 version = "0.6.0"
 description = "Self-contained Python CFFI wrapper for MAD-NG-compatible real and complex TPSA values and maps"
 readme = "README.md"

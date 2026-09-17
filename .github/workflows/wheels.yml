@@ -75,12 +75,10 @@ jobs:
           name: wheels-${{ matrix.platform }}-${{ matrix.archs }}
           path: wheelhouse/*.whl
 
-  publish:
-    name: Publish to PyPI
+  check:
+    name: Check distributions
     needs: [sdist, wheels]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    environment: pypi
     permissions:
       contents: read
     steps:
@@ -98,8 +96,3 @@ jobs:
         run: |
           python -m pip install twine
           python -m twine check dist/*
-
-      - name: Publish distributions
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}

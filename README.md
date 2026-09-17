@@ -1,6 +1,6 @@
-# madng-tpsa
+# madng-tpsa-test
 
-`madng-tpsa` is a self-contained Python package exposing MAD-NG-compatible real and complex TPSA APIs through CFFI. It provides:
+`madng-tpsa-test` is a self-contained Python package exposing MAD-NG-compatible real and complex TPSA APIs through CFFI. It provides:
 
 - descriptor construction via `DescriptorBuilder` and `descriptor(...)`;
 - scalar TPSA values via `TPSA`;
@@ -37,6 +37,10 @@ From a checkout of this repository:
 python -m pip install .
 python -m pip install -e '.[test]'
 ```
+
+To build and validate release artifacts locally, run `./release.sh` after installing
+`.[release]`. GitHub Actions also builds source distributions and Linux/macOS wheels
+as workflow artifacts. Neither path publishes packages to PyPI.
 
 Building from source needs a C compiler, `cffi`, and LAPACK/BLAS development libraries. Wheels built from this tree include the compiled extension for the target platform, but source builds must be able to link `-llapack -lblas` by default.
 
