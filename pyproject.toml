@@ -55,7 +55,7 @@ test-command = "pytest {project}/tests"
 
 [tool.cibuildwheel.linux]
 archs = ["x86_64"]
-manylinux-x86_64-image = "manylinux2014"
+manylinux-x86_64-image = "manylinux_2_28"
 container-engine = "podman"
-# manylinux2014 images are CentOS 7 based and provide LAPACK/BLAS via yum.
+# manylinux_2_28 supports current NumPy wheels used by the test suite.
 before-all = "yum install -y lapack-devel blas-devel"
