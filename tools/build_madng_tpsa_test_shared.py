@@ -27,10 +27,10 @@ def platform_makefile() -> str:
 def default_output() -> str:
     system = platform.system().lower()
     if system == "darwin":
-        return "libmadng_tpsa.dylib"
+        return "libmadng_tpsa_test.dylib"
     if system == "linux":
-        return "libmadng_tpsa.so"
-    return "madng_tpsa.dll"
+        return "libmadng_tpsa_test.so"
+    return "madng_tpsa_test.dll"
 
 
 def build(src: Path, output: Path, makefile: str, cc: str, extra_ldflags: list[str]) -> None:

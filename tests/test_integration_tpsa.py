@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-import madng_tpsa as mt
+import madng_tpsa_test as mt
 
 def test_polynomial_algebra_and_coefficients():
     desc = mt.DescriptorBuilder().variables(2).order(5).build()

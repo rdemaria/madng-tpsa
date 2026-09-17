@@ -8,7 +8,7 @@ from pathlib import Path
 
 from cffi import FFI
 
-# Importing madng_tpsa during build would try to import the extension being
+# Importing madng_tpsa_test during build would try to import the extension being
 # built, so load the declaration string directly from the sibling file.
 _ns: dict[str, object] = {}
 exec(Path(__file__).with_name("_cdefs.py").read_text(), _ns)
@@ -29,8 +29,8 @@ def _split_libs(value: str | None) -> list[str]:
 
 
 # The bundled TPSA backend uses LAPACK for map inversion (mad_tpsa_minv).
-# Override with MADNG_TPSA_LAPACK_LIBRARIES="openblas" or similar when needed.
-lapack_libraries = _split_libs(os.environ.get("MADNG_TPSA_LAPACK_LIBRARIES"))
+# Override with MADNG_TPSA_TEST_LAPACK_LIBRARIES="openblas" or similar when needed.
+lapack_libraries = _split_libs(os.environ.get("MADNG_TPSA_TEST_LAPACK_LIBRARIES"))
 if not lapack_libraries:
     if sys.platform == "darwin":
         extra_link_args.extend(["-framework", "Accelerate"])
@@ -43,10 +43,10 @@ if sys.platform not in {"darwin", "win32"}:
 libraries += lapack_libraries
 
 ffibuilder.set_source(
-    "madng_tpsa._madng_tpsa_cffi",
-    '#include "madng_tpsa_backend.h"\n',
-    sources=["src/madng_tpsa/vendor/madng_tpsa_backend.c"],
-    include_dirs=["src/madng_tpsa/vendor"],
+    "madng_tpsa_test._madng_tpsa_test_cffi",
+    '#include "madng_tpsa_test_backend.h"\n',
+    sources=["src/madng_tpsa_test/vendor/madng_tpsa_test_backend.c"],
+    include_dirs=["src/madng_tpsa_test/vendor"],
     libraries=libraries,
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,

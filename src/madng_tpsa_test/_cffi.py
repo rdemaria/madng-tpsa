@@ -1,7 +1,7 @@
 """Lazy CFFI access to a MAD-NG-compatible TPSA C API.
 
 By default this package uses the compiled, vendored CFFI extension shipped with
-``madng-tpsa``.  Advanced users may still set ``MADNG_TPSA_LIBRARY`` or pass an
+``madng-tpsa-test``.  Advanced users may still set ``MADNG_TPSA_TEST_LIBRARY`` or pass an
 explicit path to :func:`load_library` to use an external MAD-NG-compatible shared
 library instead.
 """
@@ -22,7 +22,7 @@ from ._cdefs import CDEF
 from .exceptions import MadngLibraryError
 
 try:  # Prefer the self-contained CFFI extension generated at install/build time.
-    _vendored_cffi = importlib.import_module(__package__ + "._madng_tpsa_cffi")  # type: ignore[assignment]
+    _vendored_cffi = importlib.import_module(__package__ + "._madng_tpsa_test_cffi")  # type: ignore[assignment]
 except Exception as exc:  # pragma: no cover - only hit from an unbuilt source tree
     _vendored_cffi = None
     _vendored_import_error: Exception | None = exc
@@ -59,17 +59,17 @@ def _split_env_paths(value: str | None) -> list[str]:
 
 def _platform_library_names() -> list[str]:
     if sys.platform.startswith("win"):
-        return ["madng_tpsa.dll", "libmadng_tpsa.dll", "madng.dll", "libmadng.dll"]
+        return ["madng_tpsa_test.dll", "libmadng_tpsa_test.dll", "madng.dll", "libmadng.dll"]
     if sys.platform == "darwin":
-        return ["libmadng_tpsa.dylib", "madng_tpsa.dylib", "libmadng.dylib", "madng.dylib"]
-    return ["libmadng_tpsa.so", "madng_tpsa.so", "libmadng.so", "madng.so"]
+        return ["libmadng_tpsa_test.dylib", "madng_tpsa_test.dylib", "libmadng.dylib", "madng.dylib"]
+    return ["libmadng_tpsa_test.so", "madng_tpsa_test.so", "libmadng.so", "madng.so"]
 
 
 def _pymadng_candidate_paths() -> Iterable[str]:
     """Yield future shared-object candidates from an installed pymadng package.
 
     Current pymadng wheels mainly ship MAD-NG executables for subprocess use.
-    They are not relied on by default now that madng-tpsa has a vendored C core,
+    They are not relied on by default now that madng-tpsa-test has a vendored C core,
     but keeping this probe makes an explicit external fallback future-proof if
     pymadng later ships dlopen-able libraries.
     """
@@ -119,7 +119,7 @@ def _library_candidates(explicit: str | os.PathLike[str] | None = None) -> Itera
         yield os.fspath(explicit)
         return
 
-    for value in _split_env_paths(os.environ.get("MADNG_TPSA_LIBRARY")):
+    for value in _split_env_paths(os.environ.get("MADNG_TPSA_TEST_LIBRARY")):
         yield value
     for value in _split_env_paths(os.environ.get("MADNG_LIBRARY")):
         yield value
@@ -170,7 +170,7 @@ def _load_external(path: str | os.PathLike[str] | None = None):
 def load_library(path: str | os.PathLike[str] | None = None):
     """Load and return the TPSA C library.
 
-    With no arguments and no ``MADNG_TPSA_LIBRARY`` / ``MADNG_LIBRARY`` override,
+    With no arguments and no ``MADNG_TPSA_TEST_LIBRARY`` / ``MADNG_LIBRARY`` override,
     this returns the vendored CFFI extension included in the package.  Passing a
     path, or setting one of those environment variables, makes the loader try an
     external MAD-NG-compatible shared library first and then fall back to the
@@ -181,7 +181,7 @@ def load_library(path: str | os.PathLike[str] | None = None):
     if _lib is not None and path is None:
         return _lib
 
-    external_requested = path is not None or os.environ.get("MADNG_TPSA_LIBRARY") or os.environ.get("MADNG_LIBRARY")
+    external_requested = path is not None or os.environ.get("MADNG_TPSA_TEST_LIBRARY") or os.environ.get("MADNG_LIBRARY")
     external_errors: list[str] | None = None
     if external_requested:
         lib, lib_path, external_errors = _load_external(path)
@@ -191,12 +191,12 @@ def load_library(path: str | os.PathLike[str] | None = None):
 
     if _vendored_cffi is not None:
         try:
-            _validate_symbols(_vendored_cffi.lib, "vendored madng_tpsa C core")
+            _validate_symbols(_vendored_cffi.lib, "vendored madng_tpsa_test C core")
         except Exception as exc:
-            _last_error = f"Vendored madng_tpsa C core is present but invalid: {exc}"
+            _last_error = f"Vendored madng_tpsa_test C core is present but invalid: {exc}"
             raise MadngLibraryError(_last_error) from exc
         _lib = _vendored_cffi.lib
-        _lib_path = "vendored:madng_tpsa._madng_tpsa_cffi"
+        _lib_path = "vendored:madng_tpsa_test._madng_tpsa_test_cffi"
         if external_requested and external_errors:
             _last_error = "External library load failed; using vendored C core. " + "; ".join(external_errors)
         else:
@@ -212,7 +212,7 @@ def load_library(path: str | os.PathLike[str] | None = None):
     vendored = f" vendored extension import failed: {_vendored_import_error!r}." if _vendored_import_error else ""
     _last_error = (
         "Could not load a MAD-NG-compatible TPSA library: "
-        f"{detail}.{vendored} Reinstall from source or set MADNG_TPSA_LIBRARY "
+        f"{detail}.{vendored} Reinstall from source or set MADNG_TPSA_TEST_LIBRARY "
         "to a shared library exporting the MAD-NG TPSA symbols."
     )
     raise MadngLibraryError(_last_error)

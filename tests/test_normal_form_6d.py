@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-import madng_tpsa as mt
+import madng_tpsa_test as mt
 
 EXAMPLE = Path(__file__).resolve().parents[1] / 'examples' / 'parametric_normal_form_6d.py'
 

@@ -2,7 +2,7 @@
 
 This example is intentionally written as a small, readable normal-form driver.
 It uses both the real ``TPSA`` and complex ``CTPSA`` wrappers provided by
-``madng_tpsa``.  The complex layer is used for Courant-Snyder variables,
+``madng_tpsa_test``.  The complex layer is used for Courant-Snyder variables,
 complex eigenvalues, and the homological equations used by normal-form term
 removal.
 
@@ -39,7 +39,7 @@ from __future__ import annotations
 from math import acos, pi, sqrt
 from typing import Iterable, Sequence
 
-import madng_tpsa as mt
+import madng_tpsa_test as mt
 
 
 # Descriptor layout: variables first, parameters second.

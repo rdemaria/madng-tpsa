@@ -1,7 +1,7 @@
 """Coupled 6D parametric normal form, including a nonlinear RF cavity.
 
 Run ``python examples/parametric_normal_form_6d.py`` after installing
-``madng-tpsa`` and NumPy. See ``examples/parametric_normal_form_6d.md`` for
+``madng-tpsa-test`` and NumPy. See ``examples/parametric_normal_form_6d.md`` for
 conventions, equations, coefficient access, and the limits of this example.
 
 Coordinates are dimensionless canonical pairs (x, px, y, py, z, delta).
@@ -25,7 +25,7 @@ from typing import Mapping, Sequence
 
 import numpy as np
 
-import madng_tpsa as mt
+import madng_tpsa_test as mt
 
 ND = 6
 PHASE_ORDER = 3
@@ -73,7 +73,7 @@ class Jet:
 
     This is an example-local tensor-product container, not a replacement for
     the library's TPSA algebra. All phase multiplication, differentiation,
-    elementary functions, and coefficient access use madng_tpsa.CTPSA.
+    elementary functions, and coefficient access use madng_tpsa_test.CTPSA.
     """
 
     def __init__(self, ring: ParameterRing, data: Mapping[tuple[int, ...], mt.CTPSA]):

@@ -1,5 +1,5 @@
 /*
- * Compact MAD-NG-compatible real TPSA C backend for madng-tpsa.
+ * Compact MAD-NG-compatible real TPSA C backend for madng-tpsa-test.
  *
  * The public names and signatures follow MAD-NG's real TPSA C headers so the
  * same Python CFFI layer can target this bundled backend or an external MAD-NG
@@ -8,8 +8,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef MADNG_TPSA_BACKEND_H
-#define MADNG_TPSA_BACKEND_H
+#ifndef MADNG_TPSA_TEST_BACKEND_H
+#define MADNG_TPSA_TEST_BACKEND_H
 
 #include <stdint.h>
 #include <stdbool.h>

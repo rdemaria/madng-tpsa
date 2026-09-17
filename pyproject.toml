@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "GPL-3.0-or-later"
 authors = [
-  { name = "madng-tpsa contributors" }
+  { name = "madng-tpsa-test contributors" }
 ]
 keywords = ["MAD-NG", "TPSA", "GTPSA", "accelerator", "cffi"]
 classifiers = [
@@ -34,14 +34,14 @@ examples = ["numpy>=1.24"]
 release = ["build>=1.2", "cibuildwheel>=2.22", "twine>=5"]
 
 [project.urls]
-Homepage = "https://github.com/rdemaria/madng-tpsa"
-Source = "https://github.com/rdemaria/madng-tpsa"
+Homepage = "https://github.com/rdemaria/madng-tpsa-test"
+Source = "https://github.com/rdemaria/madng-tpsa-test"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-madng_tpsa = ["py.typed", "vendor/*.h", "vendor/*.c"]
+madng_tpsa_test = ["py.typed", "vendor/*.h", "vendor/*.c"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

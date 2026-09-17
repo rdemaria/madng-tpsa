@@ -1,4 +1,4 @@
-"""Exceptions raised by :mod:`madng_tpsa`."""
+"""Exceptions raised by :mod:`madng_tpsa_test`."""
 
 from __future__ import annotations
 

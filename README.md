@@ -8,25 +8,29 @@
 - mathematical functions such as `sin`, `cos`, `exp`, `log`, `sqrt`, `atan2`, `hypot`, `conj`, `real`, and `imag`;
 - Python operator overloading so TPSA algebra looks like ordinary Python algebra.
 
-The import package is `madng_tpsa`:
+This repository preserves an experimental version of the wrapper. Its distribution,
+Python package, and package-specific environment variables use a separate name so
+it can be installed alongside the independently maintained package.
+
+The import package is `madng_tpsa_test`:
 
 ```python
-import madng_tpsa as mt
+import madng_tpsa_test as mt
 ```
 
 ## Status
 
-This version builds a bundled CFFI extension named `madng_tpsa._madng_tpsa_cffi` at install time. By default, descriptors and TPSA values use that private C backend, so neither MAD-NG nor `pymadng` is a runtime dependency.
+This version builds a bundled CFFI extension named `madng_tpsa_test._madng_tpsa_test_cffi` at install time. By default, descriptors and TPSA values use that private C backend, so neither MAD-NG nor `pymadng` is a runtime dependency.
 
 The bundled backend exports the MAD-NG real and complex TPSA C symbols used by the Python layer, including the map inverse entry points `mad_tpsa_minv` and `mad_ctpsa_minv`. Map inversion is LAPACK-backed: the C backend calls LAPACK `dgesv_` to invert the linear part and then performs the TPSA Newton inverse in C. The wrapper can still target an external, optimized MAD-NG/libgtpsa shared library with the same public symbols. MAD-NG and this package are GPLv3-or-later.
 
 At runtime:
 
 ```python
-import madng_tpsa as mt
+import madng_tpsa_test as mt
 
 print(mt.is_available())          # True when the bundled extension built correctly
-print(mt.loaded_library_path())   # usually "vendored:madng_tpsa._madng_tpsa_cffi"
+print(mt.loaded_library_path())   # usually "vendored:madng_tpsa_test._madng_tpsa_test_cffi"
 ```
 
 ## Install
@@ -57,11 +61,11 @@ sudo dnf install gcc lapack-devel blas-devel
 brew install lapack openblas
 ```
 
-If your platform exposes LAPACK through another library name, set `MADNG_TPSA_LAPACK_LIBRARIES` before building. For example:
+If your platform exposes LAPACK through another library name, set `MADNG_TPSA_TEST_LAPACK_LIBRARIES` before building. For example:
 
 ```bash
-MADNG_TPSA_LAPACK_LIBRARIES=openblas python -m pip install .
-MADNG_TPSA_LAPACK_LIBRARIES=lapack,blas python -m pip install .
+MADNG_TPSA_TEST_LAPACK_LIBRARIES=openblas python -m pip install .
+MADNG_TPSA_TEST_LAPACK_LIBRARIES=lapack,blas python -m pip install .
 ```
 
 ## Optional: use an external MAD-NG/libgtpsa shared library
@@ -69,9 +73,9 @@ MADNG_TPSA_LAPACK_LIBRARIES=lapack,blas python -m pip install .
 The loader still supports external libraries exporting MAD-NG TPSA symbols such as `mad_desc_newv`, `mad_tpsa_newd`, `mad_tpsa_add`, `mad_tpsa_compose`, `mad_ctpsa_newd`, and `mad_ctpsa_compose`:
 
 ```bash
-export MADNG_TPSA_LIBRARY=/absolute/path/to/libmadng_tpsa.so
+export MADNG_TPSA_TEST_LIBRARY=/absolute/path/to/libmadng_tpsa_test.so
 python - <<'PY'
-import madng_tpsa as mt
+import madng_tpsa_test as mt
 print(mt.loaded_library_path())
 PY
 ```
@@ -85,15 +89,15 @@ git clone https://github.com/MethodicalAcceleratorDesign/MAD-NG.git
 cd MAD-NG/src
 make -f Makefile.linux libmad.a
 
-# From the madng-tpsa checkout:
-python tools/build_madng_tpsa_shared.py /path/to/MAD-NG/src -o /path/to/libmadng_tpsa.so
-export MADNG_TPSA_LIBRARY=/path/to/libmadng_tpsa.so
+# From the madng-tpsa-test checkout:
+python tools/build_madng_tpsa_test_shared.py /path/to/MAD-NG/src -o /path/to/libmadng_tpsa_test.so
+export MADNG_TPSA_TEST_LIBRARY=/path/to/libmadng_tpsa_test.so
 ```
 
 ## Basic usage
 
 ```python
-import madng_tpsa as mt
+import madng_tpsa_test as mt
 
 # Two variables, Taylor order 5.
 desc = mt.DescriptorBuilder().variables(2).order(5).build()
@@ -175,7 +179,7 @@ print(f.to_dict())           # {(monomial_tuple): coefficient, ...}
 The package also wraps the complex MAD-NG CTPSA API (`mad_ctpsa_*`) through `CTPSA` and `CTPSAMap`. Python passes complex scalar arguments through real/imaginary `_r` entry points, avoiding CFFI ABI ambiguity for complex-by-value arguments while still using the C CTPSA backend for algebra, functions, composition, evaluation, and map inversion.
 
 ```python
-import madng_tpsa as mt
+import madng_tpsa_test as mt
 
 desc = mt.descriptor(2, 5)
 x, y = desc.variables()
@@ -218,7 +222,7 @@ inverse = one_turn.inverse()
 print((inverse @ one_turn).evaluate([1e-3, 0.0]))
 ```
 
-`TPSAMap.inverse()` calls the C `mad_tpsa_minv` entry point. In the bundled backend that routine is linked to LAPACK/BLAS; if you set `MADNG_TPSA_LIBRARY`, the same Python call dispatches to the external library's `mad_tpsa_minv`.
+`TPSAMap.inverse()` calls the C `mad_tpsa_minv` entry point. In the bundled backend that routine is linked to LAPACK/BLAS; if you set `MADNG_TPSA_TEST_LIBRARY`, the same Python call dispatches to the external library's `mad_tpsa_minv`.
 
 ## Mathematical functions
 

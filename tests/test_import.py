@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import madng_tpsa as mt
+import madng_tpsa_test as mt
 
 
 def test_bundled_backend_is_loadable():
     assert mt.is_available(), mt.availability_error()
-    assert mt.loaded_library_path() is not None
+    assert mt.loaded_library_path() == "vendored:madng_tpsa_test._madng_tpsa_test_cffi"
     lib = mt.load_library()
     assert hasattr(lib, "mad_tpsa_newd")
     assert hasattr(lib, "mad_ctpsa_newd")

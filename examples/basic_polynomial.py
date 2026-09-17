@@ -6,7 +6,7 @@ Run with:
 
 from __future__ import annotations
 
-import madng_tpsa as mt
+import madng_tpsa_test as mt
 
 
 def main() -> None:

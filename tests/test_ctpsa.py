@@ -4,7 +4,7 @@ import cmath
 
 import pytest
 
-import madng_tpsa as mt
+import madng_tpsa_test as mt
 
 
 def test_complex_coefficients_and_real_imag_projection():
